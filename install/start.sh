@@ -1,84 +1,103 @@
 #!/bin/bash
 
 echo "==================================="
-echo "Demarrage des environnements"
+echo "Démarrage des environnements Docker"
 echo "==================================="
 echo ""
 
-echo "Choisissez l'environnement a demarrer:"
-echo "1. Supabase uniquement"
-echo "2. Odoo Enterprise uniquement"
-echo "3. Coolify uniquement"
-echo "4. Supabase + Odoo Enterprise"
-echo "5. Tous les environnements"
-echo ""
-
-read -p "Votre choix (1-5): " choix
-
 cd ..
 
-case $choix in
+# Vérifier si le réseau Docker existe déjà
+NETWORK_NAME=$(grep NETWORK_NAME .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+if [ -z "$NETWORK_NAME" ]; then
+    NETWORK_NAME="app-network"
+fi
+
+# Créer le réseau s'il n'existe pas
+if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
+    echo "Création du réseau Docker $NETWORK_NAME..."
+    docker network create $NETWORK_NAME
+fi
+
+echo ""
+echo "Quel environnement souhaitez-vous démarrer?"
+echo "1) Supabase uniquement"
+echo "2) Odoo Enterprise uniquement"
+echo "3) Coolify uniquement"
+echo "4) Supabase + Odoo Enterprise"
+echo "5) Tous les environnements"
+echo ""
+
+read -p "Votre choix (1-5): " choice
+
+case $choice in
     1)
         echo ""
-        echo "Demarrage de l'environnement Supabase..."
-        docker-compose up -d supabase-db supabase-rest supabase-kong supabase-meta supabase-studio supabase-pgadmin
-        echo ""
-        echo "Supabase est accessible a l'adresse:"
-        echo "- Studio: http://localhost:3000"
-        echo "- API REST: http://localhost:8000"
-        echo "- pgAdmin: http://localhost:5050"
+        echo "Démarrage de l'environnement Supabase..."
+        cd supabase
+        docker-compose up -d
         ;;
     2)
         echo ""
-        echo "Demarrage de l'environnement Odoo Enterprise..."
-        docker-compose up -d odoo-db odoo-enterprise
-        echo ""
-        echo "Odoo est accessible a l'adresse:"
-        echo "- Interface web: http://localhost:8069"
+        echo "Démarrage de l'environnement Odoo Enterprise..."
+        cd odoo
+        docker-compose up -d
         ;;
     3)
         echo ""
-        echo "Demarrage de l'environnement Coolify..."
-        docker-compose up -d coolify coolify-db coolify-redis
-        echo ""
-        echo "Coolify est accessible a l'adresse:"
-        echo "- Interface web: http://localhost:8080"
+        echo "Démarrage de l'environnement Coolify..."
+        cd coolify
+        docker-compose up -d
         ;;
     4)
         echo ""
-        echo "Demarrage des environnements Supabase et Odoo Enterprise..."
+        echo "Démarrage des environnements Supabase et Odoo Enterprise..."
         docker-compose up -d supabase-db supabase-rest supabase-kong supabase-meta supabase-studio supabase-pgadmin odoo-db odoo-enterprise
-        echo ""
-        echo "Supabase est accessible a l'adresse:"
-        echo "- Studio: http://localhost:3000"
-        echo "- API REST: http://localhost:8000"
-        echo "- pgAdmin: http://localhost:5050"
-        echo ""
-        echo "Odoo est accessible a l'adresse:"
-        echo "- Interface web: http://localhost:8069"
         ;;
     5)
         echo ""
-        echo "Demarrage de tous les environnements..."
+        echo "Démarrage de tous les environnements..."
         docker-compose up -d
-        echo ""
-        echo "Supabase est accessible a l'adresse:"
-        echo "- Studio: http://localhost:3000"
-        echo "- API REST: http://localhost:8000"
-        echo "- pgAdmin: http://localhost:5050"
-        echo ""
-        echo "Odoo est accessible a l'adresse:"
-        echo "- Interface web: http://localhost:8069"
-        echo ""
-        echo "Coolify est accessible a l'adresse:"
-        echo "- Interface web: http://localhost:8080"
         ;;
     *)
-        echo "Choix invalide. Veuillez relancer le script."
+        echo ""
+        echo "Choix invalide. Veuillez sélectionner une option entre 1 et 5."
         exit 1
         ;;
 esac
 
 echo ""
-echo "Demarrage termine avec succes!"
+echo "Environnement(s) démarré(s) avec succès!"
 echo ""
+echo "Accès aux environnements:"
+echo ""
+
+if [ "$choice" == "1" ] || [ "$choice" == "4" ] || [ "$choice" == "5" ]; then
+    STUDIO_PORT=$(grep STUDIO_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+    REST_PORT=$(grep REST_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+    PGADMIN_PORT=$(grep PGADMIN_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+    
+    echo "Supabase Studio: http://localhost:${STUDIO_PORT:-3000}"
+    echo "Supabase API REST: http://localhost:${REST_PORT:-8000}"
+    echo "pgAdmin: http://localhost:${PGADMIN_PORT:-5050}"
+    echo "  - Email: admin@example.com"
+    echo "  - Mot de passe: admin"
+    echo ""
+fi
+
+if [ "$choice" == "2" ] || [ "$choice" == "4" ] || [ "$choice" == "5" ]; then
+    ODOO_PORT=$(grep ODOO_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+    
+    echo "Odoo Enterprise: http://localhost:${ODOO_PORT:-8069}"
+    echo "  - Base de données: odoo"
+    echo "  - Utilisateur: admin"
+    echo "  - Mot de passe: admin"
+    echo ""
+fi
+
+if [ "$choice" == "3" ] || [ "$choice" == "5" ]; then
+    COOLIFY_PORT=$(grep COOLIFY_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+    
+    echo "Coolify: http://localhost:${COOLIFY_PORT:-8080}"
+    echo ""
+fi

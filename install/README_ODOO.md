@@ -1,192 +1,224 @@
-# Odoo Enterprise - Documentation
+# Guide d'utilisation d'Odoo Enterprise
+
+Ce document explique comment utiliser l'environnement Odoo Enterprise dans ce projet.
 
 ## Présentation
 
-Odoo est une suite d'applications d'entreprise open source qui couvre tous les besoins de votre entreprise: CRM, e-commerce, comptabilité, inventaire, point de vente, gestion de projet, etc.
-
-Cette installation utilise l'image Docker officielle d'Odoo Enterprise version 18:
-`ofleet/odoo:18-20250301-enterprise@sha256:fae3c3b165ea52c9a120ceff290667f89b80b9ec93b5a4cd5b90b79cecbecad4`
-
-## Architecture
-
-L'installation d'Odoo comprend les services suivants:
-
-1. **odoo-db**: Base de données PostgreSQL dédiée à Odoo
-2. **odoo-enterprise**: Serveur Odoo Enterprise
-
-## Installation
-
-### Prérequis
-
-- Docker et Docker Compose installés
-- Au moins 2 Go de RAM disponible
-- Au moins 5 Go d'espace disque
-- Au moins 1 Go d'espace disque supplémentaire pour la base de données Odoo
-
-### Installation automatique
-
-Utilisez le script d'installation correspondant à votre système d'exploitation:
-
-- Windows: `install.bat` (option 2)
-- Linux: `install.sh` (option 2)
-- macOS: `install_mac.sh` (option 2)
-
-### Installation manuelle
-
-```bash
-cd odoo
-docker-compose up -d
-```
-
-## Accès à Odoo
-
-- **Interface web**: http://localhost:8069
-  - Base de données: odoo
-  - Utilisateur: admin
-  - Mot de passe: admin
+Odoo Enterprise est un ERP complet qui offre une suite d'applications métier intégrées. Dans ce projet, nous utilisons l'image Docker officielle d'Odoo Enterprise `ofleet/odoo:18-20250301-enterprise` qui inclut toutes les fonctionnalités de la version Enterprise.
 
 ## Configuration
 
-Le fichier `odoo/.env` contient les variables d'environnement pour configurer Odoo:
+La configuration d'Odoo se fait via plusieurs fichiers :
+
+1. **`.env`** à la racine du projet : Contient les variables d'environnement globales
+2. **`odoo/.env`** : Contient les variables d'environnement spécifiques à Odoo
+3. **`volumes/odoo/config/odoo.conf`** : Fichier de configuration d'Odoo
+
+### Variables d'environnement importantes
 
 ```
-# Base de données
-ODOO_DB_HOST=odoo-db
-ODOO_DB_PORT=5432
-ODOO_DB_USER=odoo
-ODOO_DB_PASSWORD=odoo
-ODOO_DB_NAME=odoo
-ODOO_ADMIN_PASSWORD=admin
+# Image Odoo Enterprise
+ODOO_IMAGE=ofleet/odoo:18-20250301-enterprise@sha256:fae3c3b165ea52c9a120ceff290667f89b80b9ec93b5a4cd5b90b79cecbecad4
+
+# Configuration des performances Odoo
+ODOO_WORKERS=2
+ODOO_MAX_CRON_THREADS=1
+ODOO_LIMIT_MEMORY_HARD=2684354560
+ODOO_LIMIT_MEMORY_SOFT=2147483648
+ODOO_LIMIT_REQUEST=8192
+ODOO_LIMIT_TIME_CPU=600
+ODOO_LIMIT_TIME_REAL=1200
 
 # Ports
 ODOO_PORT=8069
 ODOO_LONGPOLLING_PORT=8072
-
-# Image Odoo
-ODOO_IMAGE=ofleet/odoo:18-20250301-enterprise@sha256:fae3c3b165ea52c9a120ceff290667f89b80b9ec93b5a4cd5b90b79cecbecad4
 ```
 
-Le fichier `volumes/odoo/config/odoo.conf` contient la configuration d'Odoo:
+## Installation
 
-```ini
-[options]
-addons_path = /mnt/extra-addons
-data_dir = /var/lib/odoo
-admin_passwd = admin
-db_host = odoo-db
-db_port = 5432
-db_user = odoo
-db_password = odoo
-db_name = odoo
+Pour installer uniquement l'environnement Odoo Enterprise :
+
+### Windows
+
+```
+cd install
+install.bat
 ```
 
-## Base de données dédiée
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
 
-Odoo est configuré pour utiliser sa propre base de données PostgreSQL. La configuration est la suivante:
+### Linux
 
-1. Le service `odoo-db` est une instance PostgreSQL dédiée à Odoo
-2. Un utilisateur `odoo` avec le mot de passe `odoo` est automatiquement créé
-3. Une base de données `odoo` est automatiquement créée
+```
+cd install
+chmod +x install.sh
+./install.sh
+```
 
-Ces paramètres peuvent être modifiés dans le fichier `odoo/.env`.
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
 
-## Modules personnalisés
+### macOS
 
-Pour ajouter des modules personnalisés à Odoo:
+```
+cd install
+chmod +x install_mac.sh
+./install_mac.sh
+```
 
-1. Placez vos modules dans le dossier `volumes/odoo/addons`
-2. Redémarrez le service Odoo:
-   ```bash
-   cd odoo
-   docker-compose restart
-   ```
-3. Mettez à jour la liste des modules dans l'interface Odoo:
-   - Activez le mode développeur
-   - Allez dans Applications > Mettre à jour la liste des applications
-   - Recherchez et installez vos modules
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
 
-## Maintenance
+## Démarrage et arrêt
 
-### Démarrer Odoo
+### Démarrage
+
+Pour démarrer uniquement l'environnement Odoo Enterprise :
+
+#### Windows
+
+```
+cd install
+start.bat
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+#### Linux/macOS
+
+```
+cd install
+./start.sh
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+### Arrêt
+
+Pour arrêter uniquement l'environnement Odoo Enterprise :
+
+#### Windows
+
+```
+cd install
+stop.bat
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+#### Linux/macOS
+
+```
+cd install
+./stop.sh
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+## Mise à jour
+
+Pour mettre à jour uniquement l'environnement Odoo Enterprise :
+
+### Windows
+
+```
+cd install
+update.bat
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+### Linux/macOS
+
+```
+cd install
+./update.sh
+```
+
+Puis sélectionnez l'option "2) Odoo Enterprise uniquement".
+
+## Accès à l'interface web
+
+Une fois l'environnement Odoo Enterprise démarré, vous pouvez y accéder via votre navigateur web :
+
+- URL : http://localhost:8069
+- Base de données : odoo
+- Utilisateur : admin
+- Mot de passe : admin
+
+## Structure des dossiers
+
+```
+volumes/odoo/
+├── addons/         # Modules additionnels
+├── config/         # Configuration Odoo
+│   └── odoo.conf   # Fichier de configuration principal
+├── db/             # Données PostgreSQL
+├── db-init/        # Scripts d'initialisation de la base de données
+└── filestore/      # Stockage des fichiers (pièces jointes, etc.)
+```
+
+## Installation de modules additionnels
+
+Pour installer des modules additionnels, placez-les dans le dossier `volumes/odoo/addons/`. Ils seront automatiquement détectés par Odoo au démarrage.
+
+## Personnalisation des performances
+
+Vous pouvez personnaliser les paramètres de performance d'Odoo en modifiant les variables d'environnement dans le fichier `.env` à la racine du projet :
+
+```
+# Configuration des performances Odoo
+ODOO_WORKERS=2                    # Nombre de workers (processus)
+ODOO_MAX_CRON_THREADS=1           # Nombre de threads pour les tâches planifiées
+ODOO_LIMIT_MEMORY_HARD=2684354560 # Limite mémoire dure (2.5 Go)
+ODOO_LIMIT_MEMORY_SOFT=2147483648 # Limite mémoire souple (2 Go)
+ODOO_LIMIT_REQUEST=8192           # Nombre maximum de requêtes
+ODOO_LIMIT_TIME_CPU=600           # Limite de temps CPU (10 minutes)
+ODOO_LIMIT_TIME_REAL=1200         # Limite de temps réel (20 minutes)
+```
+
+Ces paramètres sont utilisés dans le fichier `volumes/odoo/config/odoo.conf` et sont passés à l'image Docker via des variables d'environnement.
+
+## Sauvegarde et restauration
+
+### Sauvegarde
+
+Pour sauvegarder la base de données Odoo :
 
 ```bash
-cd odoo
-docker-compose up -d
+docker exec -t odoo-db pg_dump -U odoo odoo > odoo_backup.sql
 ```
 
-### Arrêter Odoo
+### Restauration
+
+Pour restaurer la base de données Odoo à partir d'une sauvegarde :
 
 ```bash
-cd odoo
-docker-compose down
+cat odoo_backup.sql | docker exec -i odoo-db psql -U odoo -d odoo
 ```
 
-### Voir les logs
+## Logs
+
+Pour voir les logs d'Odoo :
 
 ```bash
-cd odoo
-docker-compose logs -f
+docker logs -f odoo-enterprise
 ```
 
-### Redémarrer Odoo
+Pour voir les logs de la base de données PostgreSQL d'Odoo :
 
 ```bash
-cd odoo
-docker-compose restart
+docker logs -f odoo-db
 ```
 
-### Accéder au shell Odoo
+## Dépannage
 
-```bash
-docker exec -it odoo-enterprise bash
-```
+### Problèmes de permissions
 
-### Exécuter une commande Odoo
+Si vous rencontrez des problèmes de permissions sur les dossiers montés, assurez-vous que Docker a les droits d'accès aux dossiers concernés.
 
-```bash
-docker exec -it odoo-enterprise odoo --help
-```
+### Problèmes de connexion à la base de données
 
-## Résolution des problèmes
+Si Odoo ne peut pas se connecter à la base de données, vérifiez que le conteneur `odoo-db` est bien démarré et que les informations de connexion sont correctes dans le fichier `volumes/odoo/config/odoo.conf`.
 
-### Problème de connexion à la base de données
+### Problèmes de mémoire
 
-Si Odoo ne peut pas se connecter à la base de données:
-
-1. Vérifiez que le service `odoo-db` est en cours d'exécution:
-   ```bash
-   docker ps | grep odoo-db
-   ```
-
-2. Vérifiez que l'utilisateur `odoo` existe dans la base de données:
-   ```bash
-   docker exec -it odoo-db psql -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='odoo'"
-   ```
-
-3. Vérifiez que la base de données `odoo` existe:
-   ```bash
-   docker exec -it odoo-db psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='odoo'"
-   ```
-
-4. Vérifiez les logs d'Odoo:
-   ```bash
-   docker-compose logs odoo-enterprise
-   ```
-
-### Odoo ne démarre pas
-
-Si le service Odoo ne démarre pas:
-
-1. Vérifiez les logs:
-   ```bash
-   docker-compose logs odoo-enterprise
-   ```
-
-2. Vérifiez que le port 8069 n'est pas utilisé par un autre service:
-   ```bash
-   netstat -tuln | grep 8069
-   ```
-
-3. Vérifiez que les volumes sont correctement montés:
-   ```bash
-   docker inspect odoo-enterprise
+Si Odoo consomme trop de mémoire, ajustez les paramètres `ODOO_LIMIT_MEMORY_HARD` et `ODOO_LIMIT_MEMORY_SOFT` dans le fichier `.env` à la racine du projet.

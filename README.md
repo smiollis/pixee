@@ -13,6 +13,7 @@ Chaque environnement est complètement isolé et peut être installé et exécut
 - Docker et Docker Compose installés
 - Au moins 4 Go de RAM disponible
 - Au moins 10 Go d'espace disque
+- Git installé (pour l'initialisation du dépôt)
 
 ## Structure du projet
 
@@ -42,6 +43,8 @@ Chaque environnement est complètement isolé et peut être installé et exécut
 │   ├── update.sh           # Script de mise à jour pour Linux
 │   ├── stop.bat            # Script d'arrêt pour Windows
 │   ├── stop.sh             # Script d'arrêt pour Linux
+│   ├── git_init.bat        # Script d'initialisation Git pour Windows
+│   ├── git_init.sh         # Script d'initialisation Git pour Linux/macOS
 │   ├── README_ODOO.md      # Documentation spécifique à Odoo
 │   ├── README_SUPABASE.md  # Documentation spécifique à Supabase
 │   └── README_COOLIFY.md   # Documentation spécifique à Coolify
@@ -120,6 +123,30 @@ Pour arrêter un ou plusieurs environnements:
    - Coolify uniquement
    - Supabase + Odoo Enterprise
    - Tous les environnements
+
+## Initialisation du dépôt Git
+
+Pour initialiser le dépôt Git et le pousser vers GitHub:
+
+### Prérequis
+
+1. Créez un dépôt GitHub nommé 'pixee' manuellement sur https://github.com/new
+2. Générez un token d'accès personnel avec les droits 'repo' sur https://github.com/settings/tokens
+
+### Windows
+
+1. Naviguez vers le dossier `install`
+2. Exécutez `git_init.bat`
+3. Entrez votre nom d'utilisateur GitHub et votre token d'accès personnel
+4. Le script initialisera le dépôt Git local et le poussera vers GitHub
+
+### Linux/macOS
+
+1. Naviguez vers le dossier `install`
+2. Rendez le script exécutable: `chmod +x git_init.sh`
+3. Exécutez `./git_init.sh`
+4. Entrez votre nom d'utilisateur GitHub et votre token d'accès personnel
+5. Le script initialisera le dépôt Git local et le poussera vers GitHub
 
 ## Accès aux environnements
 
@@ -319,3 +346,4 @@ docker-compose down
 - Supabase utilise le port 5434 pour sa base de données PostgreSQL
 - Odoo utilise le port 5433 pour sa base de données PostgreSQL
 - Coolify utilise le port 5432 en interne pour sa base de données PostgreSQL (non exposé)
+- Les scripts d'installation, de démarrage, de mise à jour et d'arrêt sont disponibles pour Windows, Linux et macOS
