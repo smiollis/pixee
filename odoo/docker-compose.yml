@@ -51,6 +51,19 @@ services:
     networks:
       - ${NETWORK_NAME:-app-network}
 
+  odoo-sftp:
+    image: atmoz/sftp
+    container_name: odoo-sftp
+    restart: always
+    volumes:
+      - ../volumes/odoo/addons:/home/${SFTP_USER:-odoo}/addons
+      - ../volumes/odoo/config:/home/${SFTP_USER:-odoo}/config
+    ports:
+      - "${SFTP_PORT:-2222}:22"
+    command: ${SFTP_USER:-odoo}:${SFTP_PASSWORD:-odoo}:1000
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
 networks:
   app-network:
     external: true

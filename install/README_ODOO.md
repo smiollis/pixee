@@ -32,6 +32,11 @@ ODOO_LIMIT_TIME_REAL=1200
 # Ports
 ODOO_PORT=8069
 ODOO_LONGPOLLING_PORT=8072
+
+# Configuration du serveur SFTP
+SFTP_PORT=2222
+SFTP_USER=odoo
+SFTP_PASSWORD=odoo
 ```
 
 ## Installation
@@ -144,6 +149,43 @@ Une fois l'environnement Odoo Enterprise démarré, vous pouvez y accéder via v
 - Utilisateur : admin
 - Mot de passe : admin
 
+## Accès SFTP
+
+Un serveur SFTP est inclus pour faciliter l'accès aux fichiers de configuration et aux modules additionnels :
+
+- Hôte : localhost
+- Port : 2222
+- Utilisateur : odoo
+- Mot de passe : odoo
+- Répertoires accessibles :
+  - `/addons` : Modules additionnels
+  - `/config` : Fichiers de configuration, y compris odoo.conf
+
+Vous pouvez vous connecter au serveur SFTP en utilisant n'importe quel client SFTP comme FileZilla, WinSCP ou Cyberduck.
+
+### Exemple de connexion avec FileZilla
+
+1. Ouvrez FileZilla
+2. Entrez les informations suivantes :
+   - Hôte : `sftp://localhost`
+   - Port : `2222`
+   - Identifiant : `odoo`
+   - Mot de passe : `odoo`
+3. Cliquez sur "Connexion rapide"
+
+### Exemple de connexion en ligne de commande
+
+```bash
+# Avec sftp
+sftp -P 2222 odoo@localhost
+
+# Avec scp pour télécharger un fichier
+scp -P 2222 odoo@localhost:/config/odoo.conf .
+
+# Avec scp pour uploader un fichier
+scp -P 2222 mon_module.zip odoo@localhost:/addons/
+```
+
 ## Structure des dossiers
 
 ```
@@ -158,7 +200,12 @@ volumes/odoo/
 
 ## Installation de modules additionnels
 
-Pour installer des modules additionnels, placez-les dans le dossier `volumes/odoo/addons/`. Ils seront automatiquement détectés par Odoo au démarrage.
+Pour installer des modules additionnels, vous pouvez :
+
+1. **Via SFTP** : Uploader les modules dans le dossier `/addons` via le serveur SFTP
+2. **Manuellement** : Placer les modules dans le dossier `volumes/odoo/addons/` sur votre machine hôte
+
+Les modules seront automatiquement détectés par Odoo au démarrage.
 
 ## Personnalisation des performances
 
@@ -176,6 +223,19 @@ ODOO_LIMIT_TIME_REAL=1200         # Limite de temps réel (20 minutes)
 ```
 
 Ces paramètres sont utilisés dans le fichier `volumes/odoo/config/odoo.conf` et sont passés à l'image Docker via des variables d'environnement.
+
+## Modification du fichier de configuration Odoo
+
+Pour modifier le fichier de configuration d'Odoo (`odoo.conf`), vous pouvez :
+
+1. **Via SFTP** : Accéder au fichier `/config/odoo.conf` via le serveur SFTP, le télécharger, le modifier et le réuploader
+2. **Manuellement** : Modifier le fichier `volumes/odoo/config/odoo.conf` sur votre machine hôte
+
+Après avoir modifié le fichier de configuration, vous devez redémarrer le conteneur Odoo pour que les changements prennent effet :
+
+```bash
+docker restart odoo-enterprise
+```
 
 ## Sauvegarde et restauration
 
@@ -209,6 +269,12 @@ Pour voir les logs de la base de données PostgreSQL d'Odoo :
 docker logs -f odoo-db
 ```
 
+Pour voir les logs du serveur SFTP :
+
+```bash
+docker logs -f odoo-sftp
+```
+
 ## Dépannage
 
 ### Problèmes de permissions
@@ -222,3 +288,11 @@ Si Odoo ne peut pas se connecter à la base de données, vérifiez que le conten
 ### Problèmes de mémoire
 
 Si Odoo consomme trop de mémoire, ajustez les paramètres `ODOO_LIMIT_MEMORY_HARD` et `ODOO_LIMIT_MEMORY_SOFT` dans le fichier `.env` à la racine du projet.
+
+### Problèmes de connexion SFTP
+
+Si vous ne pouvez pas vous connecter au serveur SFTP :
+
+1. Vérifiez que le conteneur `odoo-sftp` est bien démarré : `docker ps | grep odoo-sftp`
+2. Vérifiez que le port 2222 est bien ouvert : `netstat -an | grep 2222`
+3. Vérifiez les logs du serveur SFTP : `docker logs -f odoo-sftp`

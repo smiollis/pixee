@@ -164,6 +164,12 @@ Pour initialiser le dépôt Git et le pousser vers GitHub:
   - Base de données: odoo
   - Utilisateur: admin
   - Mot de passe: admin
+- **Serveur SFTP**: localhost:2222
+  - Utilisateur: odoo
+  - Mot de passe: odoo
+  - Répertoires accessibles:
+    - `/addons`: Modules additionnels
+    - `/config`: Fichiers de configuration, y compris odoo.conf
 
 ### Environnement Coolify
 
@@ -200,6 +206,7 @@ Le fichier `odoo/.env` contient les variables d'environnement pour configurer Od
 - Informations de connexion à la base de données
 - Ports des services Odoo
 - Image Docker à utiliser
+- Configuration du serveur SFTP
 
 Pour plus de détails, consultez le fichier `install/README_ODOO.md`.
 
@@ -344,6 +351,21 @@ docker-compose down
 - Chaque environnement est complètement isolé et peut être installé et exécuté indépendamment des autres
 - Les environnements utilisent des ports différents pour éviter les conflits
 - Supabase utilise le port 5434 pour sa base de données PostgreSQL
-- Odoo utilise le port 5433 pour sa base de données PostgreSQL
+- Odoo utilise le port 5433 pour sa base de données PostgreSQL et le port 2222 pour le serveur SFTP
 - Coolify utilise le port 5432 en interne pour sa base de données PostgreSQL (non exposé)
 - Les scripts d'installation, de démarrage, de mise à jour et d'arrêt sont disponibles pour Windows, Linux et macOS
+
+## Partage du dépôt GitHub
+
+Pour partager le dépôt GitHub avec d'autres utilisateurs:
+
+1. Connectez-vous à votre compte GitHub
+2. Accédez à votre dépôt 'pixee'
+3. Cliquez sur "Settings" (Paramètres)
+4. Cliquez sur "Collaborators" (Collaborateurs) dans le menu de gauche
+5. Cliquez sur "Add people" (Ajouter des personnes)
+6. Entrez les adresses e-mail des collaborateurs (par exemple, arnaud@pixeeplay.com et yegor@pixeeplay.com)
+7. Sélectionnez le niveau d'accès souhaité (Read, Write ou Admin)
+8. Cliquez sur "Add [nom] to this repository" (Ajouter [nom] à ce dépôt)
+
+Les collaborateurs recevront une invitation par e-mail pour accéder au dépôt. Ils pourront alors cloner le dépôt, soumettre des pull requests et, selon les droits accordés, fusionner des modifications.
