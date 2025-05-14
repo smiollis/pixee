@@ -209,7 +209,11 @@ Les modules seront automatiquement détectés par Odoo au démarrage.
 
 ## Personnalisation des performances
 
-Vous pouvez personnaliser les paramètres de performance d'Odoo en modifiant les variables d'environnement dans le fichier `.env` à la racine du projet :
+Vous pouvez personnaliser les paramètres de performance d'Odoo de deux façons :
+
+### 1. Via les variables d'environnement
+
+Modifiez les variables d'environnement dans le fichier `.env` à la racine du projet :
 
 ```
 # Configuration des performances Odoo
@@ -222,7 +226,24 @@ ODOO_LIMIT_TIME_CPU=600           # Limite de temps CPU (10 minutes)
 ODOO_LIMIT_TIME_REAL=1200         # Limite de temps réel (20 minutes)
 ```
 
-Ces paramètres sont utilisés dans le fichier `volumes/odoo/config/odoo.conf` et sont passés à l'image Docker via des variables d'environnement.
+Ces paramètres sont passés à l'image Docker via des variables d'environnement.
+
+### 2. Via le fichier de configuration
+
+Pour une configuration plus stable, modifiez directement le fichier `volumes/odoo/config/odoo.conf` :
+
+```
+; Configuration des performances
+workers = 2
+max_cron_threads = 1
+limit_memory_hard = 2684354560
+limit_memory_soft = 2147483648
+limit_request = 8192
+limit_time_cpu = 600
+limit_time_real = 1200
+```
+
+> **Note importante** : Pour éviter les problèmes de substitution de variables, le fichier `odoo.conf` utilise maintenant des valeurs fixes au lieu des variables d'environnement. Si vous modifiez les valeurs dans le fichier `.env`, vous devrez également les mettre à jour manuellement dans le fichier `odoo.conf`.
 
 ## Modification du fichier de configuration Odoo
 
