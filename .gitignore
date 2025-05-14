@@ -1,0 +1,30 @@
+# Fichiers de données
+*.sql
+*.csv
+*.py
+code2asin/
+suppliers_datas_et_scripts/
+
+# Volumes Docker
+volumes/db/pgdata/*
+volumes/odoo/db/*
+volumes/odoo/filestore/*
+volumes/pgadmin/*
+volumes/storage/*
+volumes/coolify/db/*
+
+# Fichiers temporaires
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Fichiers d'environnement
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dossiers de sauvegarde
+backup/

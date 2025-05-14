@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  odoo-db:
+    image: postgres:14
+    container_name: odoo-db
+    restart: always
+    environment:
+      - POSTGRES_USER=${ODOO_DB_USER:-odoo}
+      - POSTGRES_PASSWORD=${ODOO_DB_PASSWORD:-odoo}
+      - POSTGRES_DB=${ODOO_DB_NAME:-odoo}
+    volumes:
+      - ../volumes/odoo/db:/var/lib/postgresql/data
+      - ../volumes/odoo/db-init:/docker-entrypoint-initdb.d
+    ports:
+      - "${ODOO_DB_PORT:-5433}:5432"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-odoo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  odoo-enterprise:
+    image: ${ODOO_IMAGE:-ofleet/odoo:18-20250301-enterprise@sha256:fae3c3b165ea52c9a120ceff290667f89b80b9ec93b5a4cd5b90b79cecbecad4}
+    container_name: odoo-enterprise
+    restart: always
+    depends_on:
+      - odoo-db
+    environment:
+      - HOST=odoo-db
+      - PORT=5432
+      - USER=${ODOO_DB_USER:-odoo}
+      - PASSWORD=${ODOO_DB_PASSWORD:-odoo}
+      - DATABASE=${ODOO_DB_NAME:-odoo}
+      - ODOO_WORKERS=${ODOO_WORKERS:-2}
+      - ODOO_MAX_CRON_THREADS=${ODOO_MAX_CRON_THREADS:-1}
+      - ODOO_LIMIT_MEMORY_HARD=${ODOO_LIMIT_MEMORY_HARD:-2684354560}
+      - ODOO_LIMIT_MEMORY_SOFT=${ODOO_LIMIT_MEMORY_SOFT:-2147483648}
+      - ODOO_LIMIT_REQUEST=${ODOO_LIMIT_REQUEST:-8192}
+      - ODOO_LIMIT_TIME_CPU=${ODOO_LIMIT_TIME_CPU:-600}
+      - ODOO_LIMIT_TIME_REAL=${ODOO_LIMIT_TIME_REAL:-1200}
+    volumes:
+      - ../volumes/odoo/addons:/mnt/extra-addons
+      - ../volumes/odoo/filestore:/var/lib/odoo
+      - ../volumes/odoo/config:/etc/odoo
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+      - "${ODOO_LONGPOLLING_PORT:-8072}:8072"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+networks:
+  app-network:
+    external: true
+    name: ${NETWORK_NAME:-app-network}

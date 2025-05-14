@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  supabase-db:
+    image: postgres:14
+    container_name: supabase-db
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      # Configuration des performances
+      POSTGRES_MAX_CONNECTIONS: ${SUPABASE_MAX_CONNECTIONS:-100}
+      POSTGRES_SHARED_BUFFERS: ${SUPABASE_SHARED_BUFFERS:-256MB}
+      POSTGRES_EFFECTIVE_CACHE_SIZE: ${SUPABASE_EFFECTIVE_CACHE_SIZE:-1GB}
+      POSTGRES_MAINTENANCE_WORK_MEM: ${SUPABASE_MAINTENANCE_WORK_MEM:-64MB}
+      POSTGRES_MAX_WORKER_PROCESSES: ${SUPABASE_MAX_WORKER_PROCESSES:-4}
+    volumes:
+      - ../volumes/db/pgdata:/var/lib/postgresql/data
+      - ../volumes/db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  supabase-rest:
+    image: postgrest/postgrest:v9.0.0
+    container_name: supabase-rest
+    restart: always
+    depends_on:
+      - supabase-db
+    environment:
+      PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@supabase-db:5432/${POSTGRES_DB:-postgres}
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters}
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+  supabase-kong:
+    image: kong:2.8
+    container_name: supabase-kong
+    restart: always
+    depends_on:
+      - supabase-rest
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_PLUGINS: key-auth,acl,cors
+    volumes:
+      - ../volumes/kong:/etc/kong
+    ports:
+      - "${REST_PORT:-8000}:8000"
+      - "${KONG_PORT:-8443}:8443"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+  supabase-meta:
+    image: supabase/postgres-meta:v0.58.0
+    container_name: supabase-meta
+    restart: always
+    depends_on:
+      - supabase-db
+    environment:
+      PG_META_DB_HOST: supabase-db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
+      PG_META_DB_USER: ${POSTGRES_USER:-postgres}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+  supabase-studio:
+    image: supabase/studio:latest
+    container_name: supabase-studio
+    restart: always
+    depends_on:
+      - supabase-db
+      - supabase-rest
+      - supabase-kong
+      - supabase-meta
+    environment:
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DEFAULT_ORGANIZATION_NAME: Default Organization
+      DEFAULT_PROJECT_NAME: Default Project
+      SUPABASE_URL: http://localhost:${REST_PORT:-8000}
+      SUPABASE_REST_URL: http://supabase-kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU}
+    ports:
+      - "${STUDIO_PORT:-3000}:3000"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+  supabase-pgadmin:
+    image: dpage/pgadmin4:6.15
+    container_name: supabase-pgadmin
+    restart: always
+    depends_on:
+      - supabase-db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - ../volumes/pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+networks:
+  app-network:
+    external: true
+    name: ${NETWORK_NAME:-app-network}

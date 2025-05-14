@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  coolify:
+    image: ${COOLIFY_IMAGE:-ghcr.io/coollabsio/coolify:latest}
+    container_name: coolify
+    restart: always
+    depends_on:
+      - coolify-db
+      - coolify-redis
+    environment:
+      - COOLIFY_SECRET_KEY=${COOLIFY_SECRET_KEY:-changeme}
+      - COOLIFY_DATABASE_URL=${COOLIFY_DATABASE_URL:-postgresql://postgres:postgres@coolify-db:5432/coolify}
+      - COOLIFY_PORT=${COOLIFY_PORT:-8080}
+      # Configuration des performances
+      - PHP_UPLOAD_MAX_FILESIZE=${COOLIFY_MAX_UPLOAD_SIZE:-100M}
+      - PHP_MAX_EXECUTION_TIME=${COOLIFY_MAX_EXECUTION_TIME:-300}
+      - PHP_MEMORY_LIMIT=${COOLIFY_MEMORY_LIMIT:-512M}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../volumes/storage:/app/storage
+    ports:
+      - "${COOLIFY_PORT:-8080}:${COOLIFY_PORT:-8080}"
+    networks:
+      - ${NETWORK_NAME:-app-network}
+
+  coolify-db:
+    image: postgres:14
+    container_name: coolify-db
+    restart: always
+    environment:
+      - POSTGRES_USER=${COOLIFY_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${COOLIFY_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${COOLIFY_DB_NAME:-coolify}
+      # Configuration des performances
+      - POSTGRES_MAX_CONNECTIONS=${SUPABASE_MAX_CONNECTIONS:-100}
+      - POSTGRES_SHARED_BUFFERS=${SUPABASE_SHARED_BUFFERS:-256MB}
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=${SUPABASE_EFFECTIVE_CACHE_SIZE:-1GB}
+    volumes:
+      - ../volumes/coolify/db:/var/lib/postgresql/data
+    networks:
+      - ${NETWORK_NAME:-app-network}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  coolify-redis:
+    image: redis:7-alpine
+    container_name: coolify-redis
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - ${NETWORK_NAME:-app-network}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    external: true
+    name: ${NETWORK_NAME:-app-network}
